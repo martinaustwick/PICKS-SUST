@@ -4,20 +4,26 @@
 
 
 //define sizes
-var w = 1000;
-var h = 600;
+var h = 700;
+var legendWidth = 300;
+var w = h + 2*legendWidth;
+
 var radium = 10;
-var gravity = 0.5;
-var charge = -150;
+var gravity = 0.8;
+var charge = -300;
 
 
 //filename
-var filename = "GCSC data Final.txt";
+var filename = "GCSC data Final links.txt";
 //master category
 //var masterCat = "Researcher";
 var masterCat = "Name";
 //child categories
 var children = ["Department", "Critique of knowledge production",	"Managing Metabolic processes",	"Empowerment and inequality","Imagining the future","Understanding the past","Biodiversity","Air","Built Environment","Energy",	"Representations","Transport","Waste","Water","Food",	"Abiotic resources",	"Environment / climate",	"Human Wellbeing (IRIS)",	"Materials (IRIS)",	"Global Health (IRIS)",	"Intercultural Interaction (IRIS)",	"Energy, Envir. & Transport (IRIS)",	"Public Policy & Governance (IRIS)",	"Sustainable Cities (IRIS)",	"Risk & Security (IRIS)",	"Systems Engineering (IRIS)"];
+//url location
+var urlCol = "URL";
+//basic description
+var string1 = "PICKS-SUST by Martin Zaltz Austwick and Charlotte Johnson 2013-2014";
 
 
 var sizeVar = "Sum";
@@ -33,7 +39,7 @@ var selectedOpacity = 0.9;
 //stroke opacities
 var inOpacity = 1;
 var outOpacity = 0.5;
-var legendWidth = 300;
+
 
 var selectedEntity = -1;
 var dark = "#000022";
@@ -49,6 +55,8 @@ var svg = d3.select("body")	//select body
 		  .attr("width",w)
 		  .attr("height", h)
 		  .style("overflow", "scroll");
+
+var text1 = svg.append("text").text(string1).attr("x", 0).attr("y", h-5);
 
 var node;
 var edges;
@@ -121,7 +129,7 @@ function setNodes()
 
 	for(var i = 0; i<dataIn.length; i++)
 	{
-		dataset.nodes.push({id:(dataIn[i])[masterCat], type: masterCat, typeNum: 0, selected: true, dselected:false});
+		dataset.nodes.push({id:(dataIn[i])[masterCat], type: masterCat, typeNum: 0, selected: true, dselected:false, url: (dataIn[i])[urlCol]});
 		//get current index!
 		var start = dataset.nodes.length-1;
 		for(var c = 0; c<children.length; c++)
@@ -200,8 +208,57 @@ function setNodes()
 			}
  		}
 	}
+
+	console.log(dataset.nodes);
 }
 
+function setOnce()
+{
+
+	droplistBox = svg.append("foreignObject")
+					// .style("overflow-y", "scroll")
+					// .attr('width', '100%')
+	  		 		//.attr('height', '100%')
+					//.attr("y", 0)
+					.attr("x", legendWidth)
+					.style("visibility", "hidden");
+
+		dldiv = droplistBox.append("xhtml:div")
+					.attr("id", "dropDownBox")
+					// .append("svg:svg")
+					.style("background-color", light)
+					
+					;
+
+		dropSVG = dldiv.append("svg").attr("height", h).attr("width", w);
+
+		
+
+		selectAllButton = dropSVG.selectAll(".selectAllButton").data([{selected:true}]);
+		selectAllButton.enter().append("g").attr("x", 0).attr("y", 0);
+		selectAllButton.append("rect").attr("width", radium).attr("height", radium).attr("x",5).attr("y", radium).style("fill",0).style("stroke",0);
+		selectAllButton.append("text").text("(De)select all in category").attr("y", radium + 10).attr("x", 2*radium + 5);
+
+		
+		selectAllButton.on("click", function(d){
+			d.selected = !d.selected;
+			//console.log(d);
+			if(d.selected) d3.select(this).select("rect").attr("fill-opacity", selectedOpacity);
+			else d3.select(this).select("rect").attr("fill-opacity", 0);
+
+			droplist.each(function(e){
+				e.selected = d.selected;
+				if(d.selected) d3.select(this).select("rect").attr("fill-opacity", 1);
+				else d3.select(this).select("rect").attr("fill-opacity", 0);
+			});
+
+			allSelected[currentDropDown] = d.selected;
+			var keyLoc = returnLocation(keys,"id",currentDropDown);
+			//only recalculate dataset if this node is selected
+			if(keys[keyLoc].selected) setUpStuff();
+
+		});
+}
 
 function setTypedNodes()
 {
@@ -336,55 +393,7 @@ function setKeys()
 	}
 }
 
-function setOnce()
-{
 
-
-
-
-	droplistBox = svg.append("foreignObject")
-					// .style("overflow-y", "scroll")
-					// .attr('width', '100%')
-	  		 		.attr('height', '100%')
-					.attr("y", 0).attr("x", legendWidth)
-					.style("visibility", "hidden");
-
-		dldiv = droplistBox.append("xhtml:div")
-					.attr("id", "dropDownBox")
-					// .append("svg:svg")
-					.style("background-color", light)
-					
-					;
-
-		dropSVG = dldiv.append("svg").attr("height", h).attr("width", w);
-
-		
-
-		selectAllButton = dropSVG.selectAll(".selectAllButton").data([{selected:true}]);
-		selectAllButton.enter().append("g").attr("x", 0).attr("y", 0);
-		selectAllButton.append("rect").attr("width", radium).attr("height", radium).attr("x",5).attr("y", radium).style("fill",0).style("stroke",0);
-		selectAllButton.append("text").text("(De)select all in category").attr("y", radium + 10).attr("x", 2*radium + 5);
-
-		
-		selectAllButton.on("click", function(d){
-			d.selected = !d.selected;
-			//console.log(d);
-			if(d.selected) d3.select(this).select("rect").attr("fill-opacity", selectedOpacity);
-			else d3.select(this).select("rect").attr("fill-opacity", 0);
-
-			droplist.each(function(e){
-				e.selected = d.selected;
-				if(d.selected) d3.select(this).select("rect").attr("fill-opacity", 1);
-				else d3.select(this).select("rect").attr("fill-opacity", 0);
-			});
-
-			allSelected[currentDropDown] = d.selected;
-			var keyLoc = returnLocation(keys,"id",currentDropDown);
-			//only recalculate dataset if this node is selected
-			if(keys[keyLoc].selected) setUpStuff();
-
-		});
-}
 
 function showKeys()
 {
@@ -429,6 +438,8 @@ function showKeys()
 				setUpStuff();
 
 			});
+
+
 }
 
 
@@ -454,8 +465,8 @@ function returnLocation(thearray, thefield, theID)
 	{
 		if(thefield=="Applicant_surname")
 		{
-			console.log(thearray[i][thefield]);
-			console.log(theID);
+			// console.log(thearray[i][thefield]);
+			// console.log(theID);
 		}
 		if(theID==thearray[i][thefield])
 		{
@@ -478,12 +489,6 @@ function populateDropdowns()
 	var droplistin = new Array();
 
 	
-	
-					
-					// .attr("y", 0).attr("x", legendWidth)
-					// .style("width", w-legendWidth)
-					// .style("height", 200)
-					//.style("overflow-y", "scroll");
 
 	if(currentDropDown!="")
 	{ 
@@ -496,7 +501,7 @@ function populateDropdowns()
 	}
 	else
 	{	
-		console.log("no seclection");
+		console.log("no selection");
 		droplistBox.style("visibility", "hidden");
 		
 	}
@@ -518,7 +523,6 @@ function populateDropdowns()
 	dropSVG.attr("height", 50 + droplistin.length*2*radium);
 	
 	droplist.append("rect").attr("width", radium).attr("height", radium)
-				//.attr("x", legendWidth + 5)
 				.attr("x", 5)
 				.attr("y", function(d){return d.y + 2*radium;})
 				.attr("fill-opacity", function(d){
@@ -552,11 +556,7 @@ function populateDropdowns()
 
 
 
-	//}
 	
-	//droplist.selectAll("g").attr("transform", function(d) { return "translate(" + legendWidth + "+5," + d.y + ")"; });
-	
-
 }
 
 function showDropDowns()
@@ -658,7 +658,7 @@ function doDrawing()
 			})
 			.attr("stroke-width", 3);
 
-			console.log(node);
+			//console.log(node);
 
 		node.append("text")
 			.text(function(n){
@@ -673,6 +673,7 @@ function doDrawing()
 			.style("pointer-events", "none");
 
 		node
+		.attr("xlink:href", function(d) { return d.url; })
 		.on("mouseover", function(){
 				d3.select(this).select("circle").attr("stroke-opacity", inOpacity);
 				d3.select(this).select("text").attr("opacity", 1);
@@ -695,9 +696,9 @@ function doDrawing()
 					selectedEntity = -1;
 					//linkBox.attr("opacity",0);
 				}
-
-
-			});
+			})
+			.on("dblclick", function(d){if(typeof d.url === "string")window.open(d.url);})
+			;
 
 		//background box for text
 		svg.append("rect").attr("x", 0).attr("y", 0).attr("width", legendWidth).attr("height", 2*radium*(0.5+keys.length)).attr("fill", light).attr("opacity", 0.8);
