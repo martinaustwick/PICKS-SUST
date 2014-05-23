@@ -699,7 +699,8 @@ function doDrawing()
 
 			});
 
-		svg.append("rect").attr("x", 0).attr("y", 0).attr("width", legendWidth).attr("height", 2*radium*(1+keys.length)).attr("fill", light).attr("opacity", 0.8);
+		//background box for text
+		svg.append("rect").attr("x", 0).attr("y", 0).attr("width", legendWidth).attr("height", 2*radium*(0.5+keys.length)).attr("fill", light).attr("opacity", 0.8);
 
 		
 
